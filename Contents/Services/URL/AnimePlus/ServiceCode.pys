@@ -1,0 +1,103 @@
+######################################################################################
+
+BASE_URL = 'http://www.animeplus.tv'
+RE_VIDEOFUN = Regex('http://s(.*)(?=".\s)')
+RE_PLAY44 = Regex("http://.*gateway.*(?=')")
+RE_THUMB = Regex('http://videofun.me/frames/(.*)(?=".\s)')
+RE_CHEESE = Regex('http://stream.*(?=")')
+RE_VIDZUR = Regex("http://.*videos.*(?=')")
+RE_VIDEO44 = Regex('http://.*dl.*(?=")')
+ICON_COVER = "icon-cover.png"
+
+######################################################################################
+# Loads thumbnail from videofun iframe if available.
+
+def MetadataObjectForURL(url):
+	
+	page_data = HTMLElementFromURL(url)
+	for each in page_data.xpath("//div[@id='streams']//iframe/@src"):
+		if each.find("videofun") > -1:
+			iframe_data = HTMLElementFromURL(each)
+			string_data = HTML.StringFromElement(iframe_data)
+			find_thumb = RE_THUMB.search(string_data).group()
+		else:
+			find_thumb = R(ICON_COVER)
+
+	show_title = page_data.xpath("//div[@id='top_block']/h1/text()")[0].strip()
+		
+	return VideoClipObject(
+		title = show_title,
+		thumb = find_thumb,
+		summary = "Watch " + show_title + " from AnimePlus.tv"
+		)
+
+######################################################################################
+# All videos vary in codec and must be transcoded
+	
+def MediaObjectsForURL(url):
+
+	return[MediaObject(
+		optimized_for_streaming = True,
+		parts = [PartObject(key=Callback(PlayVideo, url = url))]
+		)
+	]
+
+######################################################################################
+# Cycles through the available video sources looking for one we can use
+
+def PlayVideo(url):
+	
+	for each in HTMLElementFromURL(url).xpath("//div[@id='streams']//iframe/@src"):
+
+		if each.find("videofun") >= 0:
+			page_data = HTMLElementFromURL(each)
+			string_data = HTML.StringFromElement(page_data)
+			find_url = RE_VIDEOFUN.search(string_data).group()
+			url = String.Unquote(find_url, usePlus=False)
+			Log(url)
+			return Redirect(url)
+	
+		elif each.find("video44") >= 0:
+			page_data = HTMLElementFromURL(each)
+			string_data = HTML.StringFromElement(page_data)
+			find_url = RE_VIDEO44.search(string_data).group()
+			url = String.Unquote(find_url, usePlus=False)
+			Log(url)
+			return Redirect(url)
+		
+		elif each.find("cheesestream") >= 0:
+			page_data = HTMLElementFromURL(each)
+			string_data = HTML.StringFromElement(page_data)
+			url = RE_CHEESE.search(string_data).group()
+			Log(url)
+			return Redirect(url)
+			
+		elif each.find("vidzur") >= 0:
+			page_data = HTMLElementFromURL(each)
+			string_data = HTML.StringFromElement(page_data)
+			find_url = RE_VIDZUR.search(string_data).group()
+			url = String.Unquote(find_url, usePlus=False)
+			Log(url)
+			return Redirect(url)
+			
+		elif each.find("play44") >= 0:
+			page_data = HTMLElementFromURL(each)
+			string_data = HTML.StringFromElement(page_data)
+			find_url = RE_PLAY44.search(string_data).group()
+			url = String.Unquote(find_url, usePlus=False)
+			Log(url)
+			return Redirect(url)
+	
+	Log("No compatible video stream found!")
+	return url
+
+######################################################################################
+# Alternative to Plex framework HTML.ElementFromURL to deal with page refreshes.  Thanks Meo!
+	
+def HTMLElementFromURL(url):
+	request = HTTP.Request(url)
+	
+	if 'http-equiv="refresh"' in request.content:
+		request = HTTP.Request(url, cacheTime = 0)
+	
+	return HTML.ElementFromString(request.content)
