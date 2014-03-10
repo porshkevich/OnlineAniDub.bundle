@@ -56,4 +56,5 @@ Changelog
 =========
 
 **1.01** - 10/03/14 - Fixed multi-part episodes. Re-design assets.
+
 **1.00** - 10/01/14 - Initial release.
