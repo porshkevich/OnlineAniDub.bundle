@@ -50,14 +50,10 @@ Known Issues
 ============
 
 - Episode thumbnails are not consistent or slow to load.  This is due to AnimePlus.tv not displaying thumbs by default and needing to pull them from the video iframes.
-- Multiple part episodes are not yet supported.
 
-Roadmap
-=======
-
-- Multiple part episodes.
 
 Changelog
 =========
 
+**1.01** - 10/03/14 - Fixed multi-part episodes. Re-design assets.
 **1.00** - 10/01/14 - Initial release.

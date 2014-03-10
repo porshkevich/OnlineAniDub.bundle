@@ -14,48 +14,44 @@ ICON_COVER = "icon-cover.png"
 
 def MetadataObjectForURL(url):
 	
-	page_data = HTMLElementFromURL(url)
-	for each in page_data.xpath("//div[@id='streams']//iframe/@src"):
-		if each.find("videofun") > -1:
-			iframe_data = HTMLElementFromURL(each)
-			string_data = HTML.StringFromElement(iframe_data)
-			find_thumb = RE_THUMB.search(string_data).group()
-		else:
-			find_thumb = R(ICON_COVER)
-
-	show_title = page_data.xpath("//div[@id='top_block']/h1/text()")[0].strip()
-		
-	return VideoClipObject(
-		title = show_title,
-		thumb = find_thumb,
-		summary = "Watch " + show_title + " from AnimePlus.tv"
+	ep_data = HTMLElementFromURL(url)
+	show_data = HTMLElementFromURL(ep_data.xpath("//div[@id='slink']/span/a/@href")[0])
+	ep_title = ep_data.xpath("//div[@id='top_block']/h1/text()")[0].strip()
+	show_thumb = show_data.xpath("//img[@id='series_image']/@src")[0]
+	show_genres = show_data.xpath("//span[@class='red_box']/a/text()")
+	show_rating = float(show_data.xpath("//span[@id='rating_num']/text()")[0])
+	try:
+		show_summary = show_data.xpath("//div[@class='right_col']/div/div[2]/div/span[2]/text()")[0].strip()
+	except:
+		show_summary = show_data.xpath("//div[@id='series_details']/div[2]/div/text()")[0].strip()
+	
+	return MovieObject(
+		title = ep_title,
+		thumb = show_thumb,
+		summary = show_summary,
+		genres = show_genres,
+		rating = show_rating,
+		source_title = "AnimePlus.tv"
 		)
 
 ######################################################################################
 # All videos vary in codec and must be transcoded
-	
+
+@deferred
 def MediaObjectsForURL(url):
-
-	return[MediaObject(
-		optimized_for_streaming = True,
-		parts = [PartObject(key=Callback(PlayVideo, url = url))]
-		)
-	]
-
-######################################################################################
-# Cycles through the available video sources looking for one we can use
-
-def PlayVideo(url):
 	
-	for each in HTMLElementFromURL(url).xpath("//div[@id='streams']//iframe/@src"):
-
+	page_data = HTMLElementFromURL(url)
+	parts = []
+		
+	for each in page_data.xpath("//div[@id='streams']//iframe/@src"):
+	
 		if each.find("videofun") >= 0:
 			page_data = HTMLElementFromURL(each)
 			string_data = HTML.StringFromElement(page_data)
 			find_url = RE_VIDEOFUN.search(string_data).group()
 			url = String.Unquote(find_url, usePlus=False)
 			Log(url)
-			return Redirect(url)
+			parts.append(PartObject(key = url))
 	
 		elif each.find("video44") >= 0:
 			page_data = HTMLElementFromURL(each)
@@ -63,22 +59,22 @@ def PlayVideo(url):
 			find_url = RE_VIDEO44.search(string_data).group()
 			url = String.Unquote(find_url, usePlus=False)
 			Log(url)
-			return Redirect(url)
-		
+			parts.append(PartObject(key = url))
+	
 		elif each.find("cheesestream") >= 0:
 			page_data = HTMLElementFromURL(each)
 			string_data = HTML.StringFromElement(page_data)
 			url = RE_CHEESE.search(string_data).group()
 			Log(url)
-			return Redirect(url)
-			
+			parts.append(PartObject(key = url))
+		
 		elif each.find("vidzur") >= 0:
 			page_data = HTMLElementFromURL(each)
 			string_data = HTML.StringFromElement(page_data)
 			find_url = RE_VIDZUR.search(string_data).group()
 			url = String.Unquote(find_url, usePlus=False)
 			Log(url)
-			return Redirect(url)
+			parts.append(PartObject(key = url))
 			
 		elif each.find("play44") >= 0:
 			page_data = HTMLElementFromURL(each)
@@ -86,11 +82,12 @@ def PlayVideo(url):
 			find_url = RE_PLAY44.search(string_data).group()
 			url = String.Unquote(find_url, usePlus=False)
 			Log(url)
-			return Redirect(url)
-	
-	Log("No compatible video stream found!")
-	return url
+			parts.append(PartObject(key = url)) 
 
+	return 	[MediaObject(
+		parts = parts
+		)]
+	
 ######################################################################################
 # Alternative to Plex framework HTML.ElementFromURL to deal with page refreshes.  Thanks Meo!
 	

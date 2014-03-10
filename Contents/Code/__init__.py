@@ -1,12 +1,12 @@
 ######################################################################################
 #
-#	ANIME PLUS CHANNEL (BY TEHCRUCIBLE) - v1.00
+#	ANIME PLUS CHANNEL (BY TEHCRUCIBLE) - v1.01
 #
 ######################################################################################
 
 TITLE = "Anime Plus"
 PREFIX = "/video/animeplus"
-ART = "icon-cover.png"
+ART = "art-default.jpg"
 ICON = "icon-default.png"
 ICON_LIST = "icon-list.png"
 ICON_NEXT = "icon-next.png"
@@ -29,6 +29,8 @@ def Start():
 	ObjectContainer.art = R(ART)
 	DirectoryObject.thumb = R(ICON)
 	DirectoryObject.art = R(ART)
+	PopupDirectoryObject.thumb = R(ICON)
+	PopupDirectoryObject.art = R(ART)
 	VideoClipObject.thumb = R(ICON_COVER)
 	VideoClipObject.art = R(ART)
 	HTTP.CacheTime = CACHE_1HOUR
@@ -210,7 +212,7 @@ def PageEpisodes(show_title, show_url):
 			summary = show_summary
 				)
 			)
-		page_count = page_count + 1		
+		page_count = page_count + 1
 		
 	oc.add(DirectoryObject(
 		key = Callback(AddBookmark, show_title = show_title, show_url = show_url),
@@ -230,9 +232,13 @@ def ListEpisodes(page_url):
 	
 	oc = ObjectContainer()
 	page_data = HTMLElementFromURL(page_url)
+	show_title = page_data.xpath("//div[@class='right_col']/h1/text()")[0].strip()
 	
 	for each in reversed(page_data.xpath("//div[@id='videos']/ul/li")):
-		ep_title = each.xpath("./a/text()")[0]
+		try:
+			ep_title = each.xpath("./a/text()")[0].rsplit(show_title + " ")[1]
+		except:
+			ep_title = each.xpath("./a/text()")[0]
 		ep_url = each.xpath("./a/@href")[0]
 		ep_date = Datetime.ParseDate(each.xpath("./span[@class='right_text']/text()")[0])
 		oc.add(VideoClipObject(
@@ -258,7 +264,6 @@ def GetThumb(ep_url):
 			iframe_data = HTMLElementFromURL(each)
 			string_data = HTML.StringFromElement(iframe_data)
 			find_thumb = RE_THUMB.search(string_data).group()
-			Log(find_thumb)
 			
 	try:
 		data = HTTP.Request(find_thumb, cacheTime=CACHE_1MONTH).content
