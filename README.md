@@ -3,7 +3,7 @@ About
 
 This is a plugin that creates a new channel in Plex Media Server to view content from the website AnimePlus.tv.  Includes search, bookmarks and the ability to browse alphabetically or by genre.
 
-**Note:** The author of this plugin has no affiliation with AnimePlus.tv or the owners of the content that it hosts.
+**Note:** The author of this plugin has no affiliation with AnimePlus.tv or the owners of the content to which it links.
 
 System Requirements
 ===================
@@ -58,3 +58,8 @@ Changelog
 **1.01** - 10/03/14 - Fixed multi-part episodes. Re-design assets.
 
 **1.00** - 10/01/14 - Initial release.
+
+Donate
+======
+
+Like my work?  [Buy me a coffee.](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=JUV2JAVFXY86Q)  =)
