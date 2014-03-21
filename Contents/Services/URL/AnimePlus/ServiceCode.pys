@@ -1,7 +1,7 @@
 ######################################################################################
 
 BASE_URL = 'http://www.animeplus.tv'
-RE_VIDEOFUN = Regex('http://s(.*)(?=".\s)')
+RE_VIDEOFUN = Regex('(?<=url: ")http:.*gateway.*(?=",)')
 RE_PLAY44 = Regex("http://.*gateway.*(?=')")
 RE_THUMB = Regex('http://videofun.me/frames/(.*)(?=".\s)')
 RE_CHEESE = Regex('http://stream.*(?=")')
